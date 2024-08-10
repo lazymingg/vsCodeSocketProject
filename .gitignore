@@ -1,2 +1,5 @@
 .vs/
 sever/file/*
+!sever/file/
+client/recvFile/*
+!client/recvFile/

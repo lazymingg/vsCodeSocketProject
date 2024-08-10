@@ -5,22 +5,26 @@
 #include <ws2tcpip.h>
 #include <filesystem>
 #include <thread>
+#include <chrono>
+#include <mutex>
 #include "fileService.h"
+#include "controller.h"
 using namespace std;
 
 
 #define DEFAULT_BUFLEN 512
 
+
 class Sever {
-    private:
-        WSADATA wsaData;
-        SOCKET serverSocket, clientSocket;
-        sockaddr_in serverAddr, clientAddr;
-        int clientAddrSize = sizeof(clientAddr);
-    public:
-        Sever();
-        ~Sever();
-        void run();
+private:
+    WSADATA wsaData;
+    SOCKET serverSocket, clientSocket;
+    sockaddr_in serverAddr, clientAddr;
+    int clientAddrSize = sizeof(clientAddr);
+public:
+    Sever();
+    ~Sever();
+    void run();
 };
 // Add your code here
 

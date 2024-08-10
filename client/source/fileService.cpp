@@ -7,95 +7,55 @@ FileService::~FileService()
 {
 }
 
-char *FileService::serializeFileArr(int &buffer_size)
-{
-    vector<char *> serializedFilesArr;
-    int fileCount = this->fileArr.size();
-
-    int bufferFileSize = 0;
-
-    for (int i = 0; i < fileCount; i++)
-    {        
-        char *serializedFile = this->fileArr[i].serialize(bufferFileSize);
-        serializedFilesArr.push_back(serializedFile);
-        buffer_size += bufferFileSize;
-    }
-
-    char *buffer = new char[buffer_size];
-    int offset = 0;
-    
-    // nối lại
-    for (int i = 0; i < fileCount; i++)
-    {
-        int bufferFileSize = 0;
-        std::memcpy(&bufferFileSize, serializedFilesArr[i], sizeof(bufferFileSize));
-        std::memcpy(buffer + offset, serializedFilesArr[i], bufferFileSize);
-        offset += bufferFileSize;
-        delete[] serializedFilesArr[i];
-    }
-    return buffer;
-}
-
-vector<File> FileService::getFileArr()
+vector<File>& FileService::getFileArr()
 {
     return this->fileArr;
 }
-
 void FileService::sendFileArr(SOCKET clientSocket)
 {
-    int buffer_size = 0;
-    char *buffer = serializeFileArr(buffer_size);
+    int fileArrSize = this->fileArr.size();
+    //send file size
+    send(clientSocket, (char*)&fileArrSize, sizeof(fileArrSize), 0);
 
-    // Send buffer size first
-    send(clientSocket, (char *)&buffer_size, sizeof(buffer_size), 0);
 
-    // Send the actual buffer
-    send(clientSocket, buffer, buffer_size, 0);
-
-    delete[] buffer; // Free memory allocated for buffer
+    for (int i = 0; i < fileArrSize; i++)
+    {
+        int buffer_size = 0;
+        char* buffer = this->fileArr[i].serialize(buffer_size);
+        if (!sendBuffer(clientSocket, buffer, buffer_size))
+        {
+            cout << "Send file frome fileArr failed frome file service class" << endl;
+            return;
+        }
+    }
 }
-
 void FileService::receiveFileArr(SOCKET serverSocket)
 {
-    int buffer_size;
-    char *buffer = new char[sizeof(buffer_size)];
-
-    // Receive the buffer size first
-    recv(serverSocket, buffer, sizeof(buffer_size), 0);
-    std::memcpy(&buffer_size, buffer, sizeof(buffer_size));
-    delete[] buffer;
-
-    buffer = new char[buffer_size];
-    recv(serverSocket, buffer, buffer_size, 0);
-    this->fileArr = deserializeFileArr(buffer, buffer_size);
-}
-std::vector<File> FileService::deserializeFileArr(char* buffer, int buffer_size)
-{
-    std::vector<File> files;
-    int offset = 0;
-
-    while (offset < buffer_size)
+    int fileArrSize = 0;
+    //receive file size
+    recv(serverSocket, (char*)&fileArrSize, sizeof(fileArrSize), 0);
+    
+    for (int i = 0; i < fileArrSize; i++)
     {
-        int bufferFileSize = 0;
-        std::memcpy(&bufferFileSize, buffer + offset, sizeof(bufferFileSize));
-        offset += sizeof(bufferFileSize);
-
+        char* buffer = nullptr;
+        if (!recvBuffer(serverSocket, buffer))
+        {
+            cout << "recv file fail (fileService)" << endl;
+            exit(-1);
+        }
         File file;
-        file.deserialize(buffer + offset);
-        files.push_back(file);
-        offset += bufferFileSize - sizeof(int);
+        file.deserialize(buffer);
+        this->fileArr.push_back(file);
+        delete[] buffer;
     }
-    return files;
 }
-
-
 void FileService::setFileArr()
 {
     std::string path = "./file";
 
     try
     {
-        for (const auto &entry : fs::directory_iterator(path))
+        for (const auto& entry : fs::directory_iterator(path))
         {
             if (entry.is_regular_file())
             {
@@ -106,13 +66,47 @@ void FileService::setFileArr()
             }
         }
     }
-    catch (const fs::filesystem_error &err)
+    catch (const fs::filesystem_error& err)
     {
         std::cerr << "Filesystem error: " << err.what() << std::endl;
     }
-    catch (const std::exception &ex)
+    catch (const std::exception& ex)
     {
         std::cerr << "Error: " << ex.what() << std::endl;
     }
     return;
+}
+void FileService::readUserInput(string fileName)
+{
+    fileArr.resize(0);
+    fstream fi;
+    fi.open(fileName.c_str(), ios::in);
+    if (!fi.is_open())
+    {
+        cout << " Can not open file ";
+        return;
+    }
+    string line;
+    File file;
+    while (getline(fi, line))
+    {
+        stringstream ss(line);
+        string s;
+        ss >> s;
+        file.setName(s);
+        ss >> s;
+        if (s == "LOW")
+            file.setPriority(FileDowloadPriority::LOW);
+        else if (s == "NORMAL")
+            file.setPriority(FileDowloadPriority::NORMAL);
+        else if (s == "HIGH")
+            file.setPriority(FileDowloadPriority::HIGH);
+        else if (s == "CRITICAL")
+            file.setPriority(FileDowloadPriority::CRITICAL);
+        else
+            file.setPriority(FileDowloadPriority::NONE);
+
+        fileArr.push_back(file);
+    }
+    fi.close();
 }

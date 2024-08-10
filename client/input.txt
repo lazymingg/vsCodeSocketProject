@@ -1,0 +1,3 @@
+5MB.zip LOW
+100MB.zip NORMAL
+20MB.zip CRITICAL

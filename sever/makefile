@@ -1,7 +1,7 @@
 # Compiler
 CXX = g++
 
-#C++ version 
+# C++ version 
 VERSION = -std=c++17
 
 # Compiler flags
@@ -21,10 +21,13 @@ SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
 # Output executable
 TARGET = sever
 
+# Main file
+MAIN = main.cpp
+
 # Build rule
-$(TARGET): $(SRC_FILES)
-	$(CXX) $(CXXFLAGS) $(VERSION) -o $(TARGET) $(SRC_FILES) $(LDFLAGS)
+$(TARGET): $(MAIN) $(SRC_FILES)
+	$(CXX) $(CXXFLAGS) $(VERSION) -o $(TARGET) $(MAIN) $(SRC_FILES) $(LDFLAGS)
 
 # Clean rule
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) main.exe

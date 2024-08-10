@@ -1,7 +1,8 @@
 #include "../include/sever.h"
-#include <mutex>
+
 
 using namespace std;
+using namespace chrono;
 Sever::Sever()
 {
     // Khởi tạo Winsock
@@ -25,7 +26,7 @@ Sever::Sever()
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(8080);
 
-    if (bind(serverSocket, (sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
+    if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
     {
         std::cerr << "Bind failed" << std::endl;
         closesocket(serverSocket);
@@ -57,14 +58,20 @@ Sever ::~Sever()
 
 void HandleClient(SOCKET ClientSocket)
 {
-    char recvbuf[DEFAULT_BUFLEN];
-    int recvbuflen = DEFAULT_BUFLEN;
     int iResult;
 
-    // do something
-    FileService fileService;
-    fileService.setFileArr();
-    fileService.sendFileArr(ClientSocket);
+    Controller controller(ClientSocket);
+    controller.run();
+
+
+    // check if the client has shut down the connection
+    iResult = recv(ClientSocket, (char*)&iResult, sizeof(iResult), 0);
+    if (iResult == 0)
+	{
+		std::cerr << "Connection closed by client" << std::endl;
+		closesocket(ClientSocket);
+		return;
+	}
     // Shutdown the connection since we're done
     iResult = shutdown(ClientSocket, SD_SEND);
     if (iResult == SOCKET_ERROR)
@@ -77,14 +84,16 @@ void HandleClient(SOCKET ClientSocket)
     // Cleanup
     closesocket(ClientSocket);
 }
+
+
 void Sever::run()
 {
-    std::vector<std::thread> clientThreads;
-    std::mutex clientThreadsMutex;
+    vector<thread> clientThreads;
+    mutex clientThreadsMutex;
 
     while (true)
     {
-        clientSocket = accept(serverSocket, (sockaddr *)&clientAddr, &clientAddrSize);
+        clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientAddrSize);
         if (clientSocket == INVALID_SOCKET)
         {
             std::cerr << "Accept failed" << std::endl;
@@ -93,9 +102,9 @@ void Sever::run()
             exit(1);
         }
 
-        std::cout << "Client connected" << std::endl;
+        cout << "Client connected" << endl;
 
-        std::lock_guard<std::mutex> lock(clientThreadsMutex);
-        clientThreads.push_back(std::thread(HandleClient, clientSocket));
+        lock_guard<mutex> lock(clientThreadsMutex);
+        clientThreads.push_back(thread(HandleClient, clientSocket));
     }
 }

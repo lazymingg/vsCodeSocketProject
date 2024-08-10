@@ -2,11 +2,9 @@
 #define FILE_H
 
 // necessary libraries or headers here
-#include <fstream>
-#include <cstring>
 #include <iostream>
-#include <filesystem>
-#include <cstdint>
+#include <cstring>
+#include <string>
 using namespace std;
 
 // functions, classes, or variables here
@@ -24,24 +22,25 @@ class File
 {
 private:
     string name = "";
-    int64_t size = 0;
+    long long size = 0;
     FileDowloadPriority priority = FileDowloadPriority::NONE;
-    
 public:
     string getName();
 
-    int64_t getSize();
+    long long getSize();
 
     FileDowloadPriority getPriority();
 
-    void setName(string name);
-
-    void setSize(int64_t size);
+    string getPriorityString();
 
     void setPriority(FileDowloadPriority priority);
 
-    char *serialize(int &buffer_size);
-    
+    void setName(string name);
+
+    void setSize(long long size);
+
+    char* serialize(int& buffer_size);
+
     void deserialize(char* buffer);
 };
 
