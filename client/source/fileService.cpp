@@ -15,8 +15,7 @@ void FileService::sendFileArr(SOCKET clientSocket)
 {
     int fileArrSize = this->fileArr.size();
     //send file size
-    send(clientSocket, (char*)&fileArrSize, sizeof(fileArrSize), 0);
-
+    sendNumber(clientSocket, fileArrSize);
 
     for (int i = 0; i < fileArrSize; i++)
     {
@@ -33,7 +32,7 @@ void FileService::receiveFileArr(SOCKET serverSocket)
 {
     int fileArrSize = 0;
     //receive file size
-    recv(serverSocket, (char*)&fileArrSize, sizeof(fileArrSize), 0);
+    recvNumber(serverSocket, fileArrSize);
     
     for (int i = 0; i < fileArrSize; i++)
     {

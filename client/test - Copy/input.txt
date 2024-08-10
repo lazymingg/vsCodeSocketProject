@@ -1,7 +1,0 @@
-fdafdsa.zip CRITICAL
-kfskf.zip HIGH
-fjdk.zip LOW
-minggne.zip LOW
-hello.zip CRITICAL
-5MB.zip CRITICAL
-emiuuuuu.jpg CRITICAL

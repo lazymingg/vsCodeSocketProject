@@ -184,7 +184,7 @@ void Controller::run()
             char* buffer = getDataChunk(fileDownloadQueue.front(), bufferSize);
             fileDownloadQueue.pop();
             // send the buffer size to client
-            send(socket, (char*)&bufferSize, sizeof(bufferSize), 0);
+            sendNumber(socket, bufferSize);
             // send the buffer to
             send(socket, buffer, bufferSize, 0);
             delete[] buffer;
@@ -199,16 +199,8 @@ void Controller::run()
             FileService requestFile;
             // recv the file array from client
             requestFile.receiveFileArr(socket);
-            for (int i = 0; i < requestFile.getFileArr().size(); i++)
-            {
-                cout << requestFile.getFileArr()[i].getName() << " " << requestFile.getFileArr()[i].getSize() << " " << requestFile.getFileArr()[i].getPriorityString() << endl;
-            }
             // update the queue dowload file
             updateFileQueue(requestFile);
-            for (int i = 0; i < fileQueue.size(); i++)
-            {
-                cout << fileQueue[i].getName() << " " << fileQueue[i].process << " " << fileQueue[i].maxProcess << " " << fileQueue[i].isDone << endl;
-            }
             // tesing the file queue
             next_action_time = steady_clock::now();
             theFirst = false;

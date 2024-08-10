@@ -83,15 +83,11 @@ void Controller::run()
 
     while (true)
     {
-
-        // print the progress bar
         recv(socket, (char*)&flag, sizeof(flag), 0);
-
         if (flag)
         {
             int buffer_size;
-            recv(socket, (char*)&buffer_size, sizeof(buffer_size), 0);
-
+            recvNumber(socket, buffer_size);
             char* buffer = new char[buffer_size];
             recv(socket, buffer, buffer_size, 0);
             deserializeData(buffer);

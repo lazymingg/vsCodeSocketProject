@@ -3,7 +3,7 @@
 bool sendBuffer(SOCKET clientSocket, char *buffer, int buffer_size)
 {
     // Send buffer size first
-    int result = send(clientSocket, (char *)&buffer_size, sizeof(buffer_size), 0);
+    int result = sendNumber(clientSocket, buffer_size);
     if (result == 0)
     {
         std::cerr << "Connection closed by the peer." << std::endl;
@@ -73,7 +73,7 @@ bool recvBuffer(SOCKET clientSocket, char* &buffer)
 {
     // Nhận kích thước của buffer trước
     int buffer_size = 0;
-    int result = recv(clientSocket, (char *)&buffer_size, sizeof(buffer_size), 0);
+    int result = recvNumber(clientSocket, buffer_size);
     if (result == 0)
     {
         std::cerr << "Connection closed by the peer." << std::endl;
@@ -135,4 +135,27 @@ bool recvBuffer(SOCKET clientSocket, char* &buffer)
     }
 
     return true; // Trả về true nếu nhận thành công toàn bộ dữ liệu
+}
+
+// send number 
+int sendNumber(SOCKET clientSocket, int number)
+{
+    //convert number to string
+    string str = to_string(number);
+    //send string
+    char* buffer = new char[50];
+    strcpy(buffer, str.c_str());
+    int bytesSent = send(clientSocket, buffer, 50, 0);
+    // Check if the send was successful
+
+    return bytesSent;
+}
+
+int recvNumber(SOCKET clientSocket, int &number)
+{
+    char* buffer = new char[50];
+    int bytesReceived = recv(clientSocket, buffer, 50, 0);
+    // Check if the receive was successful
+    number = atoi(buffer);
+    return bytesReceived;
 }
