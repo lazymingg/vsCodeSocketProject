@@ -8,11 +8,14 @@ VERSION = -std=c++17
 CXXFLAGS = -I./include
 
 # Linker flags
-LDFLAGS = -lws2_32
+# LDFLAGS = -lws2_32
+#static linking
+LDFLAGS = -static -lws2_32 
 
 # Source directories
 SRC_DIR = source
 # SRC_SORT_DIR = source
+
 
 # Source files
 SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
